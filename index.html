@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Rustique Restaurant - Reservations</title>
+    <style>
+        :root {
+            --bg-color: #fbf9f4;        /* Creamy parchment canvas backdrop */
+            --surface-color: #f9f5eb;   /* Pure white container card */
+            --text-main: #2b1a10;       /* Rich, deep roasted brown prose */
+            --text-muted: #705e52;      /* Lighter elegant accent brown */
+            --accent-color: #9c7c38;    /* Premium gold extracted from your logo text */
+            --accent-hover: #7d6127;
+            --border-color: #eadecc;    /* Subtle warm clay outline */
+            --selected-border: #9c7c38; /* Gold active outline */
+            --selected-bg: #f9f5eb;     /* Soft warm cream active state */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 460px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 6px 24px rgba(43, 26, 16, 0.04);
+            text-align: center;
+        }
+
+        /* Branding Section - Tailored for your actual logo dimensions */
+        .logo-container {
+            margin: 0 auto 16px auto;
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            aspect-ratio: 3 / 2;
+            background-image: url("logo.jpg"); /* Matches unnamed (1).jpg in local directory */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        h2.section-title {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Clean Table Grid Matrix */
+        .table-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .table-card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .table-card:hover {
+            border-color: var(--selected-border);
+        }
+
+        .table-card.selected {
+            border-color: var(--selected-border);
+            background-color: var(--selected-bg);
+            box-shadow: 0 4px 12px rgba(156, 124, 56, 0.08);
+        }
+
+        .table-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .table-card.selected .table-label {
+            color: var(--accent-color);
+        }
+
+        .table-circle {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            border: 2px solid var(--text-main);
+            background-color: #faf6ee;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.6rem;
+            font-family: "Georgia", serif;
+            font-weight: bold;
+            color: var(--text-main);
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .table-card.selected .table-circle {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background-color: #ffffff;
+        }
+
+        /* Subtle elegant outer accent ring */
+        .table-circle::after {
+            content: '';
+            position: absolute;
+            top: -5px; right: -5px; bottom: -5px; left: -5px;
+            border-radius: 50%;
+            border: 1px dashed var(--border-color);
+        }
+
+        .table-card.selected .table-circle::after {
+            border-color: var(--accent-color);
+        }
+
+        /* Input Elements */
+        .form-group {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: #faf8f5;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--selected-border);
+            background-color: #ffffff;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row .form-group {
+            flex: 1;
+        }
+
+        /* Premium Dark Charcoal-Brown Request Button */
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--text-main);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 8px;
+            box-shadow: 0 4px 12px rgba(43, 26, 16, 0.15);
+        }
+
+        button:hover {
+            background-color: #402819;
+        }
+
+        button:disabled {
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Success Display Sheet Overlay */
+        .success-screen {
+            display: none;
+            padding: 12px 0;
+        }
+
+        .success-screen.active {
+            display: block;
+        }
+
+        .success-badge {
+            width: 54px;
+            height: 54px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            margin: 0 auto 16px auto;
+        }
+
+        .receipt-ticket {
+            background: #faf8f5;
+            border: 1px dashed #c4b9a3;
+            border-radius: 10px;
+            padding: 18px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .receipt-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .receipt-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .receipt-line span:first-child {
+            color: var(--text-muted);
+        }
+
+        .receipt-line span:last-child {
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Form Submission Shell -->
+        <div id="booking-shell">
+            <!-- Your uploaded logo will load here -->
+            <div class="logo-container"></div>
+            
+            <h2 class="section-title">Select a Table</h2>
+            
+            <!-- Exact 1-4 Grid Component with zero archway logic -->
+            <div class="table-grid">
+                <div class="table-card selected" onclick="selectTable(1)" id="card-t1">
+                    <div class="table-label">Table 1</div>
+                    <div class="table-circle">1</div>
+                </div>
+                <div class="table-card" onclick="selectTable(2)" id="card-t2">
+                    <div class="table-label">Table 2</div>
+                    <div class="table-circle">2</div>
+                </div>
+                <div class="table-card" onclick="selectTable(3)" id="card-t3">
+                    <div class="table-label">Table 3</div>
+                    <div class="table-circle">3</div>
+                </div>
+                <div class="table-card" onclick="selectTable(4)" id="card-t4">
+                    <div class="table-label">Table 4</div>
+                    <div class="table-circle">4</div>
+                </div>
+            </div>
+
+            <form id="reservation-form">
+                <!-- Track Selected Table ID Hidden -->
+                <input type="hidden" id="selectedTable" value="1">
+
+                <div class="form-group">
+                    <label for="guestName">Guest Name</label>
+                    <input type="text" id="guestName" required placeholder="Jean-Pierre Dupont">
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">Contact Number</label>
+                    <input type="tel" id="contact" required placeholder="+33 6 1234 5678">
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="date">Arrival Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeSlot">Time Slot</label>
+                        <select id="timeSlot" required>
+                            <option value="07:00 AM">07:00 AM</option>
+                            <option value="08:30 AM" selected>08:30 AM</option>
+                            <option value="10:00 AM">10:00 AM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="pax">Party Size</label>
+                        <select id="pax" required>
+                            <option value="1">1 Guest</option>
+                            <option value="2" selected>2 Guests</option>
+                            <option value="3">3 Guests</option>
+                            <option value="4">4 Guests</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="menuChoice">Breakfast Set</label>
+                        <select id="menuChoice" required>
+                            <option value="Western Set">Western Set</option>
+                            <option value="Sri Lankan Set">Sri Lankan Set</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn">Request Reservation</button>
+            </form>
+        </div>
+
+        <!-- Success Ticket Screen Component -->
+        <div id="success-shell" class="success-screen">
+            <div class="success-badge">✓</div>
+            <h2 style="font-weight: 500;">Booking Logged</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Please keep a screenshot for reception check-in.</p>
+            
+            <div class="receipt-ticket">
+                <div class="receipt-line">
+                    <span>Assigned Table:</span>
+                    <span id="lbl-table" style="color: var(--accent-color)">Table 1</span>
+                </div>
+                <div class="receipt-line">
+                    <span>Lead Guest:</span>
+                    <span id="lbl-name">---</span>
+                </div>
+                <div class="receipt-line">
+                    <span>Schedule:</span>
+                    <span id="lbl-datetime">---</span>
+                </div>
+                <div class="receipt-line">
+                    <span>Seating Group:</span>
+                    <span id="lbl-pax">---</span>
+                </div>
+                <div class="receipt-line">
+                    <span>Menu Plan:</span>
+                    <span id="lbl-menu">---</span>
+                </div>
+            </div>
+            
+            <button style="background-color: var(--accent-color);" onclick="window.location.reload()">Book Another Entry</button>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ PASTE YOUR COPIED GOOGLE APPS SCRIPT WEB APP URL HERE
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyb_wSX7d7S5UupRGakqjjKFKCktdCnykeAHgfv4dDkq1GSOTjWLfO5BzkxwW-A4j44AA/exec";
+
+        // Table Selection Toggle Functionality
+        function selectTable(tableNumber) {
+            document.querySelectorAll('.table-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById(`card-t${tableNumber}`).classList.add('selected');
+            document.getElementById('selectedTable').value = tableNumber;
+        }
+
+        // Establish Date Limits
+        const datePicker = document.getElementById('date');
+        const systemToday = new Date().toISOString().split('T')[0];
+        datePicker.min = systemToday;
+        datePicker.value = systemToday;
+
+        // Process Form Submission
+        document.getElementById('reservation-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const actionButton = document.getElementById('submit-btn');
+            actionButton.disabled = true;
+            actionButton.innerText = "Transmitting Details...";
+
+            const payload = {
+                tableNum: document.getElementById('selectedTable').value,
+                guestName: document.getElementById('guestName').value,
+                contact: document.getElementById('contact').value,
+                date: document.getElementById('date').value,
+                timeSlot: document.getElementById('timeSlot').value,
+                pax: document.getElementById('pax').value,
+                menuChoice: document.getElementById('menuChoice').value
+            };
+
+            // Post Form Data Payload to Google Sheets Script Connector
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "cors", // Handles cross-origin requests cleanly
+                headers: { "Content-Type": "text/plain" }, // Standard text/plain bypasses strict CORS preflights safely
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(response => {
+                // Populate summary card parameters safely inside the layout using the real generated ID
+                document.getElementById('lbl-table').innerText = "Table " + payload.tableNum;
+                document.getElementById('lbl-name').innerText = payload.guestName;
+                document.getElementById('lbl-datetime').innerText = `${payload.date} at ${payload.timeSlot}`;
+                document.getElementById('lbl-pax').innerText = `${payload.pax} Pax`;
+                document.getElementById('lbl-menu').innerText = payload.menuChoice;
+
+                // View Toggle Layout Engine Swap
+                document.getElementById('booking-shell').classList.add('hidden');
+                document.getElementById('success-shell').classList.add('active');
+            })
+            .catch(err => {
+                alert("Communication Error. Check your internet connection.");
+                console.error(err);
+                actionButton.disabled = false;
+                actionButton.innerText = "Request Reservation";
+            });
+        });
+    </script>
+</body>
+</html>
